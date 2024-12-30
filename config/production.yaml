@@ -1,0 +1,16 @@
+app:
+  name: "go-service-template"
+  environment: "development"
+api:
+  port: 8080
+  healthCheck: "/health"
+postgres:
+  host: "localhost"
+  port: 5432
+  user: "user"
+  password: "password"
+  name: "database"
+  max_connections: 10
+  min_connections: 5
+  max_idle_time: 10000
+  max_conn_lifetime: 10000
