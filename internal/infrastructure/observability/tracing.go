@@ -16,6 +16,7 @@ func InitTracer(cfg *shared.Config) *sdktrace.TracerProvider {
 	exporter, err := jaeger.New(jaeger.WithCollectorEndpoint(
 		jaeger.WithEndpoint(cfg.Observability.Jaeger.Endpoint),
 	))
+
 	if err != nil {
 		log.Fatalf("Error creating Jaeger exporter: %v", err)
 	}
