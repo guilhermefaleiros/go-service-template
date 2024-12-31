@@ -1,12 +1,10 @@
 package controller
 
 import (
-	"encoding/json"
-	"github.com/go-chi/chi/v5"
+	"github.com/labstack/echo/v4"
 	"guilhermefaleiros/go-service-template/internal/application/usecase"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/api/model"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/api/util"
-	"net/http"
 )
 
 type UserController struct {
@@ -14,35 +12,34 @@ type UserController struct {
 	retrieveUserUseCase *usecase.RetrieveUserUseCase
 }
 
-func (u *UserController) Setup(r chi.Router) {
-	r.Post("/", u.CreateUser)
-	r.Get("/{id}", u.GetByID)
+func (u *UserController) Setup(e *echo.Echo) {
+	e.POST("/users", u.CreateUser)
+	e.GET("/users/:id", u.GetByID)
 }
 
-func (u *UserController) GetByID(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	output, err := u.retrieveUserUseCase.Execute(r.Context(), id)
+func (u *UserController) GetByID(c echo.Context) error {
+	id := c.Param("id")
+	output, err := u.retrieveUserUseCase.Execute(c.Request().Context(), id)
 	if err != nil {
-		util.NotFound(w, "user not found")
-		return
+		return util.NotFound(c, "user not found")
 	}
 	response := model.NewRetrieveUserResponse(output)
-	util.Ok(w, response)
+	return util.Ok(c, response)
 }
 
-func (u *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (u *UserController) CreateUser(c echo.Context) error {
 	var request model.CreateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		util.BadRequest(w, err.Error())
-		return
+	if err := c.Bind(&request); err != nil {
+		return util.BadRequest(c, "invalid request")
 	}
-	output, err := u.createUserUseCase.Execute(r.Context(), request.ToUseCaseInput())
+
+	output, err := u.createUserUseCase.Execute(c.Request().Context(), request.ToUseCaseInput())
 	if err != nil {
-		util.BadRequest(w, err.Error())
-		return
+		return util.BadRequest(c, err.Error())
 	}
+
 	response := model.NewCreateUserResponse(output)
-	util.Created(w, response)
+	return util.Created(c, response)
 }
 
 func NewUserController(createUserUseCase *usecase.CreateUserUseCase, retrieveUserUseCase *usecase.RetrieveUserUseCase) *UserController {

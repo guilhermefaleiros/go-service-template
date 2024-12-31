@@ -3,21 +3,21 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/labstack/echo/v4"
 	"guilhermefaleiros/go-service-template/internal/application/usecase"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/api/controller"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/api/util"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/database"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/repository"
 	"guilhermefaleiros/go-service-template/internal/shared"
+	"log"
 	"log/slog"
 	"net/http"
 )
 
 type API struct {
-	Router *chi.Mux
+	Router *echo.Echo
 	Server *http.Server
 	DB     *pgxpool.Pool
 	Cfg    *shared.Config
@@ -28,13 +28,13 @@ func NewAPI(environment string) (*API, error) {
 
 	cfg, err := shared.LoadConfig(environment)
 	if err != nil {
-		slog.Info("failed to load config")
+		log.Println("failed to load config")
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
 	conn, err := database.NewPGConnection(ctx, cfg)
 	if err != nil {
-		slog.Info("failed to connect to database")
+		log.Println("failed to connect to database")
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
@@ -43,25 +43,18 @@ func NewAPI(environment string) (*API, error) {
 	retrieveUserUseCase := usecase.NewRetrieveUserUseCase(userRepo)
 	userController := controller.NewUserController(createUserUseCase, retrieveUserUseCase)
 
-	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	e := echo.New()
 
-	SetupMetadata(r, conn)
-
-	r.Route("/users", func(r chi.Router) {
-		userController.Setup(r)
-	})
+	SetupMetadata(e, conn)
+	userController.Setup(e)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.API.Port),
-		Handler: r,
+		Handler: e,
 	}
 
 	return &API{
-		Router: r,
+		Router: e,
 		Server: server,
 		DB:     conn,
 		Cfg:    cfg,
@@ -69,12 +62,12 @@ func NewAPI(environment string) (*API, error) {
 }
 
 func (api *API) Start() error {
-	slog.Info(fmt.Sprintf("Starting server on port %d", api.Cfg.API.Port))
+	log.Printf("Starting server on port %d\n", api.Cfg.API.Port)
 	return api.Server.ListenAndServe()
 }
 
 func (api *API) Shutdown(ctx context.Context) error {
-	slog.Info("Shutting down server...")
+	log.Println("Shutting down server...")
 	if err := api.Server.Shutdown(ctx); err != nil {
 		return fmt.Errorf("failed to shutdown server: %w", err)
 	}
@@ -82,18 +75,18 @@ func (api *API) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func SetupMetadata(r chi.Router, conn *pgxpool.Pool) {
-	r.Get("/live", func(w http.ResponseWriter, r *http.Request) {
-		util.OkMessage(w, "ready")
+func SetupMetadata(e *echo.Echo, conn *pgxpool.Pool) {
+	e.GET("/live", func(c echo.Context) error {
+		return util.OkMessage(c, "live")
 	})
 
-	r.Get("/ready", func(w http.ResponseWriter, r *http.Request) {
-		err := conn.Ping(r.Context())
+	e.GET("/ready", func(c echo.Context) error {
+		ctx := c.Request().Context()
+		err := conn.Ping(ctx)
 		if err != nil {
-			slog.Error("Failed to ping database")
-			util.InternalServerError(w, "unready")
-			return
+			slog.Info("Failed to ping database")
+			return util.InternalServerError(c, "unready")
 		}
-		util.OkMessage(w, "ready")
+		return util.OkMessage(c, "ready")
 	})
 }

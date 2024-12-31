@@ -27,10 +27,6 @@ type CreateUserUseCase struct {
 
 func (u *CreateUserUseCase) Execute(ctx context.Context, input CreateUserInput) (*CreateUserOutput, error) {
 	existentUser, err := u.repository.FindByEmail(ctx, input.Email)
-	if err != nil {
-		slog.Error(fmt.Sprintf("failed to find user by email: %v", err))
-		return nil, err
-	}
 	if existentUser != nil {
 		slog.Warn(fmt.Sprintf("user already exists with email: %s", existentUser.Email))
 		return nil, ErrUserAlreadyExists

@@ -1,42 +1,30 @@
 package util
 
 import (
-	"encoding/json"
+	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
-func Ok(w http.ResponseWriter, body interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(body)
+func Ok(c echo.Context, response any) error {
+	return c.JSON(http.StatusOK, response)
 }
 
-func OkMessage(w http.ResponseWriter, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": message})
+func OkMessage(c echo.Context, message string) error {
+	return c.JSON(http.StatusOK, map[string]string{"message": message})
 }
 
-func Created(w http.ResponseWriter, body interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(body)
+func BadRequest(c echo.Context, message string) error {
+	return c.JSON(http.StatusBadRequest, map[string]string{"error": message})
 }
 
-func BadRequest(w http.ResponseWriter, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(w).Encode(map[string]string{"error": message})
+func NotFound(c echo.Context, message string) error {
+	return c.JSON(http.StatusNotFound, map[string]string{"error": message})
 }
 
-func NotFound(w http.ResponseWriter, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(w).Encode(map[string]string{"error": message})
+func Created(c echo.Context, response any) error {
+	return c.JSON(http.StatusCreated, response)
 }
 
-func InternalServerError(w http.ResponseWriter, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusInternalServerError)
-	json.NewEncoder(w).Encode(map[string]string{"error": message})
+func InternalServerError(c echo.Context, message string) error {
+	return c.JSON(http.StatusInternalServerError, map[string]string{"error": message})
 }
