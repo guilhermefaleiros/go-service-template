@@ -29,6 +29,12 @@ func BadRequest(w http.ResponseWriter, message string) {
 	json.NewEncoder(w).Encode(map[string]string{"error": message})
 }
 
+func NotFound(w http.ResponseWriter, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNotFound)
+	json.NewEncoder(w).Encode(map[string]string{"error": message})
+}
+
 func InternalServerError(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)

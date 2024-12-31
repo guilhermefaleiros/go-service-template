@@ -17,14 +17,13 @@ type UserController struct {
 func (u *UserController) Setup(r chi.Router) {
 	r.Post("/", u.CreateUser)
 	r.Get("/{id}", u.GetByID)
-
 }
 
 func (u *UserController) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	output, err := u.retrieveUserUseCase.Execute(r.Context(), id)
 	if err != nil {
-		util.BadRequest(w, err.Error())
+		util.NotFound(w, "user not found")
 		return
 	}
 	response := model.NewRetrieveUserResponse(output)
