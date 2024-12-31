@@ -14,10 +14,9 @@ import (
 	"guilhermefaleiros/go-service-template/internal/infrastructure/api/controller"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/api/util"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/database"
-	observability2 "guilhermefaleiros/go-service-template/internal/infrastructure/observability"
+	"guilhermefaleiros/go-service-template/internal/infrastructure/observability"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/repository"
 	"guilhermefaleiros/go-service-template/internal/shared"
-	"log"
 	"log/slog"
 	"net/http"
 )
@@ -35,16 +34,16 @@ func NewAPI(environment string) (*API, error) {
 
 	cfg, err := shared.LoadConfig(environment)
 	if err != nil {
-		log.Println("failed to load config")
+		slog.Error("failed to load config")
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
-	observability2.InitMeterProvider(cfg)
-	observability2.InitTracer(cfg)
+	observability.InitMeterProvider(cfg)
+	observability.InitTracer(cfg)
 
 	conn, err := database.NewPGConnection(ctx, cfg)
 	if err != nil {
-		log.Println("failed to connect to database")
+		slog.Error("failed to connect to database")
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
@@ -74,17 +73,17 @@ func NewAPI(environment string) (*API, error) {
 }
 
 func (api *API) Start() error {
-	log.Printf("Starting server on port %d\n", api.Cfg.API.Port)
+	slog.Info(fmt.Sprintf("Starting server on port %d", api.Cfg.API.Port))
 	return api.Server.ListenAndServe()
 }
 
 func (api *API) Shutdown(ctx context.Context) error {
-	log.Println("Shutting down server...")
+	slog.Info("Shutting down server...")
 	if err := api.Server.Shutdown(ctx); err != nil {
 		return fmt.Errorf("failed to shutdown server: %w", err)
 	}
 	api.DB.Close()
-	observability2.ShutdownTracerProvider(otel.GetTracerProvider().(*sdktrace.TracerProvider))
+	observability.ShutdownTracerProvider(otel.GetTracerProvider().(*sdktrace.TracerProvider))
 	return nil
 }
 
@@ -97,7 +96,7 @@ func SetupMetadata(e *echo.Echo, conn *pgxpool.Pool) {
 		ctx := c.Request().Context()
 		err := conn.Ping(ctx)
 		if err != nil {
-			slog.Info("Failed to ping database")
+			slog.Error("Failed to ping database")
 			return util.InternalServerError(c, "unready")
 		}
 		return util.OkMessage(c, "ready")

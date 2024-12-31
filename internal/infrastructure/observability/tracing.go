@@ -4,7 +4,7 @@ import (
 	"context"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"guilhermefaleiros/go-service-template/internal/shared"
-	"log"
+	"log/slog"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -18,7 +18,7 @@ func InitTracer(cfg *shared.Config) *sdktrace.TracerProvider {
 	))
 
 	if err != nil {
-		log.Fatalf("Error creating Jaeger exporter: %v", err)
+		slog.Error("failed to create jaeger exporter")
 	}
 
 	tp := sdktrace.NewTracerProvider(
@@ -27,7 +27,6 @@ func InitTracer(cfg *shared.Config) *sdktrace.TracerProvider {
 			"",
 			attribute.String("service.name", cfg.App.Name),
 			attribute.String("environment", cfg.App.Environment),
-			attribute.String("version", "1.0.0"),
 		)),
 	)
 
@@ -38,6 +37,6 @@ func InitTracer(cfg *shared.Config) *sdktrace.TracerProvider {
 
 func ShutdownTracerProvider(tp *sdktrace.TracerProvider) {
 	if err := tp.Shutdown(context.Background()); err != nil {
-		log.Printf("Error shutting down tracer provider: %v", err)
+		slog.Error("failed to shutdown tracer provider")
 	}
 }
