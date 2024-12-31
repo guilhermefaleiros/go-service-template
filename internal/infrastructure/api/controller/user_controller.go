@@ -32,12 +32,10 @@ func (u *UserController) CreateUser(c echo.Context) error {
 	if err := c.Bind(&request); err != nil {
 		return util.BadRequest(c, "invalid request")
 	}
-
 	output, err := u.createUserUseCase.Execute(c.Request().Context(), request.ToUseCaseInput())
 	if err != nil {
 		return util.BadRequest(c, err.Error())
 	}
-
 	response := model.NewCreateUserResponse(output)
 	return util.Created(c, response)
 }
