@@ -54,6 +54,28 @@ func (r *PGUserRepository) Create(ctx context.Context, user *entity.User) error 
 	return nil
 }
 
+func (r *PGUserRepository) FindById(ctx context.Context, id string) (*entity.User, error) {
+	query := "SELECT id, name, email, status, phone, created_at, updated_at FROM users WHERE id = $1"
+	row := r.conn.QueryRow(ctx, query, id)
+
+	var user entity.User
+	err := row.Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Status,
+		&user.Phone,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func NewPGUserRepository(conn *pgxpool.Pool) *PGUserRepository {
 	return &PGUserRepository{conn: conn}
 }

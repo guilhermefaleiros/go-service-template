@@ -22,3 +22,8 @@ func (m *MockUserRepository) Create(ctx context.Context, user *entity.User) erro
 	args := m.Called(user)
 	return args.Error(0)
 }
+
+func (m *MockUserRepository) FindByID(ctx context.Context, id string) (*entity.User, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(*entity.User), args.Error(1)
+}
