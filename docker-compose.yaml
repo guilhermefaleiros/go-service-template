@@ -21,3 +21,15 @@ services:
       - "14268:14268"
       - "4317:4317"
       - "4318:4318"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: docker
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - jaeger

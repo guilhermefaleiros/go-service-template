@@ -14,7 +14,11 @@ import (
 
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
-	app, err := api.NewAPI("development")
+	environment := os.Getenv("ENVIRONMENT")
+	if environment == "" {
+		os.Setenv("ENVIRONMENT", "local")
+	}
+	app, err := api.NewAPI(os.Getenv("ENVIRONMENT"))
 	if err != nil {
 		slog.Error("Failed to initialize API: %v", err)
 	}

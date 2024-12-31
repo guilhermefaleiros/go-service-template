@@ -9,13 +9,13 @@ server:
 observability:
   enabled: true
   jaeger:
-    endpoint: ${JAEGER_ENDPOINT}
+    endpoint: "http://jaeger:14268/api/traces"
 postgres:
-  host: ${POSTGRES_HOST}
-  port: ${POSTGRES_PORT}
-  user: ${POSTGRES_USER}
-  password: ${POSTGRES_PASSWORD}
-  name: ${POSTGRES_DATABASE}
+  host: "postgres"
+  port: 5432
+  user: "user"
+  password: "password"
+  name: "database"
   max_connections: 10
   min_connections: 5
   max_idle_time: 10000
