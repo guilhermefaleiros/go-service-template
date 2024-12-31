@@ -14,11 +14,8 @@ import (
 
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
-	environment := os.Getenv("ENVIRONMENT")
-	if environment == "" {
-		os.Setenv("ENVIRONMENT", "local")
-	}
-	app, err := api.NewAPI(os.Getenv("ENVIRONMENT"))
+	environment := getEnvironment("local")
+	app, err := api.NewAPI(environment)
 	if err != nil {
 		slog.Error("Failed to initialize API: %v", err)
 	}
@@ -43,4 +40,17 @@ func main() {
 	}
 
 	slog.Info("Server gracefully stopped")
+}
+
+func getEnvironment(defaultEnv string) string {
+	environment := os.Getenv("ENVIRONMENT")
+	if environment == "" {
+		environment = defaultEnv
+		err := os.Setenv("ENVIRONMENT", defaultEnv)
+		if err != nil {
+			slog.Error("Failed to set default environment")
+			panic(err)
+		}
+	}
+	return environment
 }
