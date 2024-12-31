@@ -20,8 +20,6 @@ COPY --from=builder /app/main .
 
 COPY --from=builder /app/config ./config
 
-# Exponha a porta usada pela aplicação
 EXPOSE 8080
 
-# Comando para iniciar a aplicação
 CMD ["./main"]

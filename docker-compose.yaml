@@ -22,6 +22,18 @@ services:
       - "4317:4317"
       - "4318:4318"
 
+  flyway:
+    image: flyway/flyway:9
+    depends_on:
+      - postgres
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/database
+      FLYWAY_USER: user
+      FLYWAY_PASSWORD: password
+    entrypoint: ["flyway", "migrate"]
+    volumes:
+      - ./migrations:/flyway/sql
+
   app:
     build:
       context: .
@@ -33,3 +45,4 @@ services:
     depends_on:
       - postgres
       - jaeger
+      - flyway
