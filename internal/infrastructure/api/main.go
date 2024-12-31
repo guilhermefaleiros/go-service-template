@@ -5,12 +5,18 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
+	"go.opentelemetry.io/otel"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"guilhermefaleiros/go-service-template/internal/application/usecase"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/api/controller"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/api/util"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/database"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/repository"
 	"guilhermefaleiros/go-service-template/internal/shared"
+	"guilhermefaleiros/go-service-template/internal/shared/observability"
 	"log"
 	"log/slog"
 	"net/http"
@@ -24,6 +30,7 @@ type API struct {
 }
 
 func NewAPI(environment string) (*API, error) {
+
 	ctx := context.Background()
 
 	cfg, err := shared.LoadConfig(environment)
@@ -31,6 +38,9 @@ func NewAPI(environment string) (*API, error) {
 		log.Println("failed to load config")
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
+
+	observability.InitMeterProvider(cfg)
+	observability.InitTracer(cfg)
 
 	conn, err := database.NewPGConnection(ctx, cfg)
 	if err != nil {
@@ -44,7 +54,9 @@ func NewAPI(environment string) (*API, error) {
 	userController := controller.NewUserController(createUserUseCase, retrieveUserUseCase)
 
 	e := echo.New()
-
+	e.Use(middleware.Recover())
+	e.Use(middleware.Logger())
+	e.Use(otelecho.Middleware(cfg.App.Name))
 	SetupMetadata(e, conn)
 	userController.Setup(e)
 
@@ -72,6 +84,7 @@ func (api *API) Shutdown(ctx context.Context) error {
 		return fmt.Errorf("failed to shutdown server: %w", err)
 	}
 	api.DB.Close()
+	observability.ShutdownTracerProvider(otel.GetTracerProvider().(*sdktrace.TracerProvider))
 	return nil
 }
 
@@ -89,4 +102,6 @@ func SetupMetadata(e *echo.Echo, conn *pgxpool.Pool) {
 		}
 		return util.OkMessage(c, "ready")
 	})
+
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 }

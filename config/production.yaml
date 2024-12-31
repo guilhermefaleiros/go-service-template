@@ -4,6 +4,9 @@ app:
 api:
   port: 8080
   healthCheck: "/health"
+observability:
+  jaeger:
+    endpoint: "http://localhost:14268/api/traces"
 postgres:
   host: "localhost"
   port: 5432

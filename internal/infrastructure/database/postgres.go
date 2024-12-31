@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"guilhermefaleiros/go-service-template/internal/shared"
 	"time"
@@ -23,6 +24,8 @@ func NewPGConnection(ctx context.Context, config *shared.Config) (*pgxpool.Pool,
 	poolConfig.MinConns = config.Postgres.MinConnection
 	poolConfig.MaxConnIdleTime = time.Duration(config.Postgres.MaxIdleTime) * time.Second
 	poolConfig.MaxConnLifetime = time.Duration(config.Postgres.MaxLifeTime) * time.Second
+
+	poolConfig.ConnConfig.Tracer = otelpgx.NewTracer()
 
 	pool, err := pgxpool.NewWithConfig(ctxWithTimeout, poolConfig)
 	if err != nil {

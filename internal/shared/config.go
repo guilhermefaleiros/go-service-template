@@ -18,6 +18,12 @@ type Config struct {
 		HealthCheck string `mapstructure:"healthCheck"`
 	} `mapstructure:"api"`
 
+	Observability struct {
+		Jaeger struct {
+			Endpoint string `mapstructure:"endpoint"`
+		} `mapstructure:"jaeger"`
+	} `mapstructure:"observability"`
+
 	Postgres struct {
 		Host          string `mapstructure:"host"`
 		Port          int    `mapstructure:"port"`

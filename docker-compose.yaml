@@ -9,3 +9,15 @@ services:
       POSTGRES_DB: database
     ports:
       - "5432:5432"
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.41
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "4317:4317"
+      - "4318:4318"
