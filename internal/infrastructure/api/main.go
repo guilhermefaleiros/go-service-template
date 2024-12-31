@@ -14,9 +14,9 @@ import (
 	"guilhermefaleiros/go-service-template/internal/infrastructure/api/controller"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/api/util"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/database"
+	observability2 "guilhermefaleiros/go-service-template/internal/infrastructure/observability"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/repository"
 	"guilhermefaleiros/go-service-template/internal/shared"
-	"guilhermefaleiros/go-service-template/internal/shared/observability"
 	"log"
 	"log/slog"
 	"net/http"
@@ -39,8 +39,8 @@ func NewAPI(environment string) (*API, error) {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
-	observability.InitMeterProvider(cfg)
-	observability.InitTracer(cfg)
+	observability2.InitMeterProvider(cfg)
+	observability2.InitTracer(cfg)
 
 	conn, err := database.NewPGConnection(ctx, cfg)
 	if err != nil {
@@ -84,7 +84,7 @@ func (api *API) Shutdown(ctx context.Context) error {
 		return fmt.Errorf("failed to shutdown server: %w", err)
 	}
 	api.DB.Close()
-	observability.ShutdownTracerProvider(otel.GetTracerProvider().(*sdktrace.TracerProvider))
+	observability2.ShutdownTracerProvider(otel.GetTracerProvider().(*sdktrace.TracerProvider))
 	return nil
 }
 
