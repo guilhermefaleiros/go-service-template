@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"guilhermefaleiros/go-service-template/internal/api"
+	"guilhermefaleiros/go-service-template/internal/infrastructure/api"
 	"log/slog"
 	"os"
 )

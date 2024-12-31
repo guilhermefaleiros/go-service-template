@@ -3,9 +3,9 @@ package controller
 import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
-	"guilhermefaleiros/go-service-template/internal/api/model"
-	"guilhermefaleiros/go-service-template/internal/api/util"
 	"guilhermefaleiros/go-service-template/internal/application/usecase"
+	"guilhermefaleiros/go-service-template/internal/infrastructure/api/model"
+	"guilhermefaleiros/go-service-template/internal/infrastructure/api/util"
 	"net/http"
 )
 
