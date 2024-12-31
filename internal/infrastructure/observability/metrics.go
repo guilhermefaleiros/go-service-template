@@ -5,7 +5,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	"guilhermefaleiros/go-service-template/internal/shared"
+	"guilhermefaleiros/go-service-template/internal/infrastructure/config"
 	"log/slog"
 )
 
@@ -13,7 +13,7 @@ var (
 	meterProvider *metric.MeterProvider
 )
 
-func InitMeterProvider(cfg *shared.Config) {
+func InitMeterProvider(cfg *config.Config) {
 	exporter, err := prometheus.New()
 	if err != nil {
 		slog.Error("failed to create prometheus exporter")

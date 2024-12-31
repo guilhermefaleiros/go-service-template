@@ -13,10 +13,10 @@ import (
 	"guilhermefaleiros/go-service-template/internal/application/usecase"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/api/controller"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/api/util"
+	"guilhermefaleiros/go-service-template/internal/infrastructure/config"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/database"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/observability"
 	"guilhermefaleiros/go-service-template/internal/infrastructure/repository"
-	"guilhermefaleiros/go-service-template/internal/shared"
 	"log/slog"
 	"net/http"
 )
@@ -25,14 +25,14 @@ type API struct {
 	Router *echo.Echo
 	Server *http.Server
 	DB     *pgxpool.Pool
-	Cfg    *shared.Config
+	Cfg    *config.Config
 }
 
 func NewAPI(environment string) (*API, error) {
 
 	ctx := context.Background()
 
-	cfg, err := shared.LoadConfig(environment)
+	cfg, err := config.LoadConfig(environment)
 	if err != nil {
 		slog.Error("failed to load config")
 		return nil, fmt.Errorf("failed to load config: %w", err)

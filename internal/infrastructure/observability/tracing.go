@@ -3,7 +3,7 @@ package observability
 import (
 	"context"
 	"go.opentelemetry.io/otel/exporters/jaeger"
-	"guilhermefaleiros/go-service-template/internal/shared"
+	"guilhermefaleiros/go-service-template/internal/infrastructure/config"
 	"log/slog"
 
 	"go.opentelemetry.io/otel"
@@ -12,7 +12,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
-func InitTracer(cfg *shared.Config) *sdktrace.TracerProvider {
+func InitTracer(cfg *config.Config) *sdktrace.TracerProvider {
 	exporter, err := jaeger.New(jaeger.WithCollectorEndpoint(
 		jaeger.WithEndpoint(cfg.Observability.Jaeger.Endpoint),
 	))

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"guilhermefaleiros/go-service-template/internal/shared"
+	"guilhermefaleiros/go-service-template/internal/infrastructure/config"
 	"time"
 )
 
-func NewPGConnection(ctx context.Context, config *shared.Config) (*pgxpool.Pool, error) {
+func NewPGConnection(ctx context.Context, config *config.Config) (*pgxpool.Pool, error) {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s",
 		config.Postgres.User, config.Postgres.Password, config.Postgres.Host, config.Postgres.Port, config.Postgres.Name)
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, 5*time.Second)
