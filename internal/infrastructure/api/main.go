@@ -53,10 +53,13 @@ func NewAPI(environment string) (*API, error) {
 	userController := controller.NewUserController(createUserUseCase, retrieveUserUseCase)
 
 	e := echo.New()
+
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
 	e.Use(otelecho.Middleware(cfg.App.Name))
+
 	SetupMetadata(e, conn)
+
 	userController.Setup(e)
 
 	server := &http.Server{
