@@ -13,13 +13,16 @@ type Config struct {
 		Environment string `mapstructure:"environment"`
 	} `mapstructure:"app"`
 
-	API struct {
-		Port        int    `mapstructure:"port"`
-		HealthCheck string `mapstructure:"healthCheck"`
-	} `mapstructure:"api"`
+	Server struct {
+		Port      int    `mapstructure:"port"`
+		Liveness  string `mapstructure:"liveness"`
+		Readiness string `mapstructure:"readiness"`
+		Metrics   string `mapstructure:"metrics"`
+	} `mapstructure:"server"`
 
 	Observability struct {
-		Jaeger struct {
+		Enabled bool `mapstructure:"enabled"`
+		Jaeger  struct {
 			Endpoint string `mapstructure:"endpoint"`
 		} `mapstructure:"jaeger"`
 	} `mapstructure:"observability"`

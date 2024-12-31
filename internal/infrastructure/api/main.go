@@ -38,8 +38,10 @@ func NewAPI(environment string) (*API, error) {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
-	observability.InitMeterProvider(cfg)
-	observability.InitTracer(cfg)
+	if cfg.Observability.Enabled {
+		observability.InitMeterProvider(cfg)
+		observability.InitTracer(cfg)
+	}
 
 	conn, err := database.NewPGConnection(ctx, cfg)
 	if err != nil {
@@ -56,14 +58,13 @@ func NewAPI(environment string) (*API, error) {
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
-	e.Use(otelecho.Middleware(cfg.App.Name))
 
-	SetupMetadata(e, conn)
+	SetupMetadata(e, conn, cfg)
 
 	userController.Setup(e)
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.API.Port),
+		Addr:    fmt.Sprintf(":%d", cfg.Server.Port),
 		Handler: e,
 	}
 
@@ -76,7 +77,7 @@ func NewAPI(environment string) (*API, error) {
 }
 
 func (api *API) Start() error {
-	slog.Info(fmt.Sprintf("Starting server on port %d", api.Cfg.API.Port))
+	slog.Info(fmt.Sprintf("Starting server on port %d", api.Cfg.Server.Port))
 	return api.Server.ListenAndServe()
 }
 
@@ -90,12 +91,12 @@ func (api *API) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func SetupMetadata(e *echo.Echo, conn *pgxpool.Pool) {
-	e.GET("/live", func(c echo.Context) error {
+func SetupMetadata(e *echo.Echo, conn *pgxpool.Pool, cfg *config.Config) {
+	e.GET(cfg.Server.Liveness, func(c echo.Context) error {
 		return util.OkMessage(c, "live")
 	})
 
-	e.GET("/ready", func(c echo.Context) error {
+	e.GET(cfg.Server.Readiness, func(c echo.Context) error {
 		ctx := c.Request().Context()
 		err := conn.Ping(ctx)
 		if err != nil {
@@ -105,5 +106,8 @@ func SetupMetadata(e *echo.Echo, conn *pgxpool.Pool) {
 		return util.OkMessage(c, "ready")
 	})
 
-	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+	if cfg.Observability.Enabled {
+		e.Use(otelecho.Middleware(cfg.App.Name))
+		e.GET(cfg.Server.Metrics, echo.WrapHandler(promhttp.Handler()))
+	}
 }
